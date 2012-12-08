@@ -1,6 +1,22 @@
-#seq_viewer {
+html {
+	overflow: hidden;
+	position: relative;
+}
+body {
+	height: 100%;
+	margin: 0px;
+}
+div.ReadMapper {
+	background-color: black;
     width: 50%;
     height: 80%;
+	
+}
+
+div.SequenceFrame {
+	width: 80%;
+	height: 100%;
+	background-color: blue;
     word-wrap: break-word;
     overflow-y: auto;
     overflow-x: hidden;
