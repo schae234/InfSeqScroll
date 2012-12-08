@@ -1,0 +1,7 @@
+#seq_viewer {
+    width: 50%;
+    height: 80%;
+    word-wrap: break-word;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
