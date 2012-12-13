@@ -2,6 +2,7 @@
 <html  lang="en" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml" >
 <head>
 	<meta content="text/html;charset=utf-8" http-equiv="Content-Type"></meta>
+    <title>Maize Sequence Read Mapper</title>
     <link href="img/favicon.ico" rel="shortcut icon">
 	<script src="js/tools.js" type="text/javascript"></script>
     <script src="js/ReadMapper.js" type="text/javascript"></script>
@@ -9,16 +10,16 @@
 
 	<script type="text/javascript">
 		function init(){
-			 rm = new ReadMapper(document.getElementById("ReadMapper"))
-			 var a = 1;
+			rm = new ReadMapper(document.getElementById("ReadMapper"))
+            rm.load_chromosome(10)
 		}
 	</script>
 
 </head>
 
 <body onload="init()">
-<p>Sequence Mapper</p>
-<div id="ReadMapper"></div>
+    <div id="ReadMapper">
+</div>
 </body>
 
 

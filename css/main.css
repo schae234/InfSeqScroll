@@ -1,23 +1,43 @@
 html {
 	overflow: hidden;
 	position: relative;
-}
-body {
 	height: 100%;
 	margin: 0px;
+    
+}
+body {
+    font-family: 'Varela',arial,serif;
+    font-size: 15px;
+    height: 100%;
+    margin: 0;
 }
 div.ReadMapper {
-	background-color: black;
-    width: 50%;
-    height: 80%;
-	
-}
-
-div.SequenceFrame {
-	width: 80%;
-	height: 100%;
-	background-color: blue;
-    word-wrap: break-word;
-    overflow-y: auto;
+	background-color: white;
+    width: 100%;
+    max-height: 100%;
+    margin: 0;
+    position:relative;
+    overflow-y: hidden;
     overflow-x: hidden;
+    
+}	
+div.SequenceFrame {
+    background-color: white;
+    height: 600px;
+    overflow-y: auto;
+    position: relative;
+    width: 700px;
+    word-wrap: break-word;
+    border: solid thin black;
+    margin-bottom: 15px;
+}
+div.ChromoMap {
+    position: relative;
+    float: right; 
+    border: solid thin black;
+    height: 300px;
+    width: 400px;
+}
+span.highlighted {
+    background: yellow;
 }
