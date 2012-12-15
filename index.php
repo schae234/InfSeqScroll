@@ -11,7 +11,7 @@
 	<script type="text/javascript">
 		function init(){
 			rm = new ReadMapper(document.getElementById("ReadMapper"))
-            rm.load_chromosome(10)
+            rm.init()
 		}
 	</script>
 
