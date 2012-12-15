@@ -10,7 +10,7 @@
 
 	<script type="text/javascript">
 		function init(){
-			rm = new ReadMapper(document.getElementById("ReadMapper"))
+			window.rm = new ReadMapper(document.getElementById("ReadMapper"))
             rm.init()
 		}
 	</script>

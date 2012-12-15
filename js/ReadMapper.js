@@ -10,6 +10,7 @@ function ReadMapper(div){
     this.ajax = new Ajax("http://csbio.cs.umn.edu/MaizeOutreach/ReadMapper.php") 
     // chromo details    
     this.details = new Array()
+	this.highlighted_sequence = ''
     // Fore closures
     var caller = this
 
@@ -71,7 +72,7 @@ function ReadMapper(div){
     }
 
     this.add_map_chromo = function(number,length){
-        var chr = new Chromosome(length,this.details.max_chromo_length)
+        var chr = new Chromosome(length,this.details.max_chromo_length,number)
         var caller = this;
         chr.add_click_event(function(){caller.load_chromosome(number)})
         this.chromosomes[number]= chr
@@ -96,8 +97,10 @@ function ReadMapper(div){
     }
 
     this.add_to_frame = function(JSON){ 
+		var chunk = new Chunk(JSON)
         this.cur_chunk = JSON.chunk
-        this.frame.innerHTML += JSON.seq
+        this.frame.appendChild(chunk)
+		this.find_sequence()
     }
 
     this.clear = function(){
@@ -128,7 +131,7 @@ function ReadMapper(div){
     }
   
     this.load_chromosome = function(chr){
-        if(chr > this.num_chromosomes || chr < 1)
+        if(chr > (this.chromosomes.length-1) || chr < 1)
             return null;
         this.chr = chr
         this.cur_chunk = 1
@@ -146,9 +149,21 @@ function ReadMapper(div){
     
     this.find_sequence = function(){ 
         var query = this.searchbox.get_query()
-        var patt = new RegExp(query,"gi")
-        this.frame.innerHTML=this.frame.innerHTML.replace(patt,"<span class='highlighted'>"+query+"</span>")
-        
+		if(query == ''){
+			return;
+		}
+		var chunks = this.frame.childNodes
+		for(var i = 0; i < chunks.length; i++){
+			if(chunks[i].attributes.highlighted_text == query){
+				continue;
+			}
+			else{
+				chunks[i].innerHTML
+				= chunks[i].attributes.seq.value.replace(RegExp(query,'gi'),"<span class='highlighted'>"+query+"</span>")
+				chunks[i].setAttribute("highlighted_seq",query)
+			}
+		}
+		this.highlighted_sequence = query;
     }
 }
 ReadMapper.prototype
@@ -185,12 +200,15 @@ Ajax.prototype.snd_msg = function(JSON, response){
 }// end snd_msg
 
 
-function Chromosome(length,max_height){
+function Chromosome(length,max_height,chr_num){
     this.length = length
 
     // create a div
     this.div = document.createElement('div')
     this.div.className = "Chromosome"
+	var num = document.createElement("span")
+	num.innerHTML = chr_num.toString()
+	this.div.appendChild(num)
     
     this.div.style.height = parseInt(parseInt(length)/parseInt(max_height)*100) + '%'
 
@@ -221,4 +239,14 @@ function SearchBox(){
         return this.querybox.value
     }
 
+}
+	
+function Chunk(obj){
+	var div   = document.createElement('div')
+	div.setAttribute('chunk', obj.chunk)
+	div.setAttribute('seq'  , obj.seq)
+	div.setAttribute('class','chunk')
+	div.innerHTML = obj.seq
+	div.setAttribute('highlighted_text','')
+	return div
 }

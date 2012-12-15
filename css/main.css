@@ -54,7 +54,11 @@ div.Chromosome {
     margin-top: 10px;
     border: 1px solid black;
     border-radius: 8px;
+	text-align: center;
 }
 div.Chromosome.Selected {
     background-color: yellow;
+}
+div.chunk {
+	display:inline;
 }
