@@ -11,7 +11,7 @@ function ReadMapper(div){
     // chromo details    
     this.details = new Array()
 	this.highlighted_sequence = ''
-    // Fore closures
+    // For closures
     var caller = this
 
     ///////////////////////////////////////
@@ -68,13 +68,24 @@ function ReadMapper(div){
             this.add_map_chromo(chr_num,this.details.chromosomes[chr_num].length) 
         }
         // init default chromosome
-        this.load_chromosome(1)
+        this.load_chromosome(1,1)
     }
 
     this.add_map_chromo = function(number,length){
         var chr = new Chromosome(length,this.details.max_chromo_length,number)
         var caller = this;
-        chr.add_click_event(function(){caller.load_chromosome(number)})
+        chr.div.onclick = function(e){
+            // get the right coordinates
+            var percentage = 0;
+            var offsetY = this.offsetTop-this.scrollTop;
+            var originalTarget = this;
+            while(originalTarget = originalTarget.offsetParent){
+                offsetY += originalTarget.offsetTop-originalTarget.scrollTop;
+            }
+            var percentage = parseInt(((e.pageY-offsetY)/caller.chromosomes[number].div.offsetHeight)*100)
+            //caller.chromosomes[number].move_pointer(percentage)
+            caller.load_chromosome(number,percentage)
+        }
         this.chromosomes[number]= chr
         this.chromomap.appendChild(chr.div)
         return this
@@ -82,7 +93,6 @@ function ReadMapper(div){
 
     this.fetch_additional_frame = function(){
         if(this.cur_chunk == this.get_max_chunk()){
-            alert("You Reached the End of the Chromosome!")
             return
         }
         this.cur_chunk++
@@ -100,6 +110,7 @@ function ReadMapper(div){
 		var chunk = new Chunk(JSON)
         this.cur_chunk = JSON.chunk
         this.frame.appendChild(chunk)
+        this.move_chromosome_pointer()
 		this.find_sequence()
     }
 
@@ -121,22 +132,30 @@ function ReadMapper(div){
             this.fetch_additional_frame()
         }
     }
-    this.select_chromosome = function(chr_num){
+    this.select_chromosome = function(chr_num,percent){
         // check to see if this is the first time
         if(this.selected_chromosome != undefined){
-            this.chromosomes[this.selected_chromosome].div.className = "Chromosome"
+            this.chromosomes[this.selected_chromosome].unselect()
         }
         this.selected_chromosome = chr_num
-        this.chromosomes[this.selected_chromosome].div.className = "Chromosome Selected"
+        this.chromosomes[this.selected_chromosome].select(percent)
+        this.chromosomes[this.selected_chromosome].set_pointer(percent)
     }
   
-    this.load_chromosome = function(chr){
-        if(chr > (this.chromosomes.length-1) || chr < 1)
+    this.load_chromosome = function(chr,percent){
+        if(chr > (this.chromosomes.length-1) || chr < 1){
             return null;
+        }
+        if(percent > 100){
+            percent = 100   
+        }
+        if(percent < 1){
+            percent = 1
+        }
         this.chr = chr
-        this.cur_chunk = 1
+        this.cur_chunk = parseInt(percent*this.get_max_chunk()/100)
         this.clear()
-        this.select_chromosome(chr)
+        this.select_chromosome(chr,percent)
         var caller = this
         // Grab the starting sequence from the database
         this.ajax.snd_msg(
@@ -159,11 +178,15 @@ function ReadMapper(div){
 			}
 			else{
 				chunks[i].innerHTML
-				= chunks[i].attributes.seq.value.replace(RegExp(query,'gi'),"<span class='highlighted'>"+query+"</span>")
+				= chunks[i].attributes.seq.value.replace(RegExp(query,'gi'),"<span class='highlighted'>"+query.toUpperCase()+"</span>")
 				chunks[i].setAttribute("highlighted_seq",query)
 			}
 		}
 		this.highlighted_sequence = query;
+    }
+    this.move_chromosome_pointer = function(){
+        var percent = parseInt(this.cur_chunk/(this.get_max_chunk())*100)
+        this.chromosomes[this.selected_chromosome].set_pointer(percent)
     }
 }
 ReadMapper.prototype
@@ -202,19 +225,32 @@ Ajax.prototype.snd_msg = function(JSON, response){
 
 function Chromosome(length,max_height,chr_num){
     this.length = length
-
     // create a div
     this.div = document.createElement('div')
     this.div.className = "Chromosome"
+    // Create The Chromosome number
 	var num = document.createElement("span")
 	num.innerHTML = chr_num.toString()
-	this.div.appendChild(num)
-    
+	//this.div.appendChild(num)
+   
+    // Set the height 
     this.div.style.height = parseInt(parseInt(length)/parseInt(max_height)*100) + '%'
 
-    this.add_click_event = function(func){
-        this.div.onclick = func
-        return this
+    // Add a pointer
+    this.pointer = document.createElement("div")
+    this.pointer.className = "ChromosomePointer"
+    this.div.appendChild(this.pointer); 
+
+    this.select = function(percent){
+        this.div.className = "Chromosome Selected"
+        this.pointer.className = "ChromosomePointer Selected"
+    }
+    this.unselect = function(){
+        this.div.className = "Chromosome"
+        this.pointer.className = "ChromosomePointer"
+    }
+    this.set_pointer = function(percent){
+        this.pointer.style.top = parseInt(percent*this.div.offsetHeight/100) + 'px'
     }
 
 }

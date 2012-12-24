@@ -39,7 +39,6 @@ div.ChromoMap {
     height: 500px;
     width: 35%;
     top: 0px;
-    cursor: pointer;
 }
 span.highlighted {
     background: yellow;
@@ -49,16 +48,33 @@ div.Chromosome {
     width: 20px;
     background-color: blue;
     position: relative;
-    display: inline-block;
+    display: inline-table;
     margin-left: 5px;
-    margin-top: 10px;
     border: 1px solid black;
     border-radius: 8px;
 	text-align: center;
+    top:0px;
+    cursor: pointer;
 }
 div.Chromosome.Selected {
     background-color: yellow;
 }
 div.chunk {
 	display:inline;
+}
+
+
+div.ChromosomePointer {
+    height: 0px;
+    width: 0px;
+    border-top: 5px solid transparent;
+    border-bottom: 5px solid transparent;
+    border-left: 5px solid red;
+    position: relative;
+    left:-5px; 
+    z-index: 2;
+    visibility: hidden;
+}
+div.ChromosomePointer.Selected{
+    visibility: visible;
 }
