@@ -5,14 +5,19 @@ function ReadMapper(div){
     // Initialize the inner HTML
 	this.div = div;
     this.div.className = "ReadMapper"
-    this.div.innerHTML = "<h3>Sequence Mapper</h3>"
     // Initialize the Ajax Object
-    this.ajax = new Ajax("http://csbio.cs.umn.edu/MaizeOutreach/ReadMapper.php") 
+    this.ajax = new Ajax("http://127.0.0.1/MaizeOutreach/ReadMapper.php") 
     // chromo details    
     this.details = new Array()
 	this.highlighted_sequence = ''
     // For closures
     var caller = this
+
+    ///////////////////////////////////////
+    // Header Part
+    ///////////////////////////////////////
+	this.header = new Header("Maize Read Mapper")
+	this.div.appendChild(this.header.div)
 
     ///////////////////////////////////////
     // Sequence Frame
@@ -38,7 +43,6 @@ function ReadMapper(div){
     // Search Box
     ////////////////////////////////////////
     this.searchbox = new SearchBox()
-    var caller = this;
     this.searchbox.add_click_function(
         function(){
             caller.find_sequence()
@@ -68,7 +72,7 @@ function ReadMapper(div){
             this.add_map_chromo(chr_num,this.details.chromosomes[chr_num].length) 
         }
         // init default chromosome
-        this.load_chromosome(1,1)
+        this.load_chromosome_chunk(8,1)
     }
 
     this.add_map_chromo = function(number,length){
@@ -109,8 +113,13 @@ function ReadMapper(div){
     this.add_to_frame = function(JSON){ 
 		var chunk = new Chunk(JSON)
         this.cur_chunk = JSON.chunk
+		this.chr_end = JSON.end
         this.frame.appendChild(chunk)
         this.move_chromosome_pointer()
+		// change the header details 
+		this.header.set_start(this.chr_start)
+		this.header.set_end(JSON.end)
+		this.header.set_percent(((this.chr_end-this.chr_start)/this.chr_length)*100)
 		this.find_sequence()
     }
 
@@ -132,16 +141,45 @@ function ReadMapper(div){
             this.fetch_additional_frame()
         }
     }
+
     this.select_chromosome = function(chr_num,percent){
         // check to see if this is the first time
         if(this.selected_chromosome != undefined){
             this.chromosomes[this.selected_chromosome].unselect()
         }
         this.selected_chromosome = chr_num
+		this.chr_length = this.chromosomes[this.selected_chromosome].length
         this.chromosomes[this.selected_chromosome].select(percent)
         this.chromosomes[this.selected_chromosome].set_pointer(percent)
     }
-  
+
+	this.load_chromosome_chunk = function(chr,chunk){
+        this.chr = chr
+	    if(chr > (this.chromosomes.length-1) || chr < 1){
+            return null;
+        }
+        if(chunk > this.get_max_chunk()){
+            chunk = this.get_max_chunk() 
+        }
+        if(chunk < 1){
+            chunk = 1
+        }
+        this.cur_chunk = chunk
+        this.clear()
+        this.select_chromosome(chr,parseInt(this.cur_chunk/this.get_max_chunk()))
+		this.header.set_chr("Chromosome "+chr)
+        var caller = this
+        // Grab the starting sequence from the database
+        this.ajax.snd_msg(
+            {"action":"get_chunk_by_id", "chunk":this.cur_chunk, "chr": this.chr },
+            function(response){
+				caller.chr_start = response.start
+				caller.chr_end   = response.end
+                caller.add_to_frame.apply(caller,[response])
+            }
+        )
+	} 
+ 
     this.load_chromosome = function(chr,percent){
         if(chr > (this.chromosomes.length-1) || chr < 1){
             return null;
@@ -156,11 +194,14 @@ function ReadMapper(div){
         this.cur_chunk = parseInt(percent*this.get_max_chunk()/100)
         this.clear()
         this.select_chromosome(chr,percent)
+		this.header.set_chr("Chromosome "+chr)
         var caller = this
         // Grab the starting sequence from the database
         this.ajax.snd_msg(
             {"action":"get_chunk_by_id", "chunk":this.cur_chunk, "chr": this.chr },
             function(response){
+				caller.chr_start = response.start
+				caller.chr_end   = response.end
                 caller.add_to_frame.apply(caller,[response])
             }
         )
@@ -286,3 +327,41 @@ function Chunk(obj){
 	div.setAttribute('highlighted_text','')
 	return div
 }
+
+function Header(main_banner_text){
+	this.div = document.createElement("div")
+	
+	this.main_banner = document.createElement("h2")
+	this.main_banner.innerHTML = main_banner_text
+
+	this.chr_banner = document.createElement("h3")
+	this.start_banner = document.createElement("h3")
+	this.end_banner = document.createElement("h3")
+
+	this.percent_banner = document.createElement("h3")
+
+	this.div.appendChild(this.main_banner)	
+	this.div.appendChild(this.chr_banner)	
+	this.div.appendChild(this.start_banner)	
+	this.div.appendChild(this.end_banner)	
+	this.div.appendChild(this.percent_banner)	
+
+	
+	this.set_main = function(text){
+		this.main_banner.innerHTML = text
+	}
+	this.set_chr = function(chr){
+		this.chr_banner.innerHTML = "Chromosome: " + chr
+	}
+	this.set_start = function(start){
+		this.start_banner.innerHTML = "Start: " + start
+	}
+	this.set_end = function(end){
+		this.end_banner.innerHTML = "End: " + end
+	}
+	this.set_percent = function(percent){
+		this.percent_banner.innerHTML = "Percent Loaded: " + (percent).toFixed(4) + "%"
+	}
+
+}
+
