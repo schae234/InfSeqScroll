@@ -14,7 +14,6 @@
 			window.rm = new ReadMapper(document.getElementById("ReadMapper"))
             rm.init()
 			window.ms = new MessageCenter(document.getElementById("messageCenter"))
-			ms.init()
 		}
 	</script>
     <script type="text/javascript">

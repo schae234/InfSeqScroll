@@ -73,6 +73,7 @@ function ReadMapper(div){
         }
         // init default chromosome
         this.load_chromosome_chunk(8,1)
+		this.find_sequence("AAGCTTCATGCAACTGCTGCCAGAAATGAGAGGTGAACTGCGTTCCTCTATCTGACACTATCTTCTTTGGCACACCATGAAGACAAACGATCCGAGACATATACAATTCTGCCAACACTGCACTGCTATAGTTGGTCTTGACAGGTATGAAGTGGGCTGACTTGGTCAAGCGGTCCACTACTACCCAAATGGAATCGTAGCCGGCTCGAGTGCGAGGCAATCCGACTATGAAATCCATACCAATTTCATCCCATTTCCACTGAGGGATCTGCAACGGTTGCAACAATCCAGCAGGTCTCTGGTGTTCTGCCTTAATTCTTCGGCAACTATCGCACATAGCCACATGCTCTGCGATTTCCCTCTTCATTCCGTACCACCAGAATTTCTTCTTCAGATCCTGATACATCTTCTCACTGCCAGGGTGAATCGAATAAGCTGTCTCATGAGCTTCCTTGAGAATCAACTCCCGAATGGACTGGACATTGGGTACACACAAGCGGTCTTTGAACCATATCACGCCTTCTGCATCTTCTCGAAAATCTTTGCCTTTGCCATCTAGAATCAGTCACCGGATCTCACTGATTTTCTCATCATTCTTCTGCGCTTCTTTGATTTCGCGCTCCAAGGTAGGTTCCAACTCGACTGTGACTCCTCGCGAATTATTCAGAAATCCGAGACTCAACCTGTCAAACTCTTTGGCCAACTCATAAGGCATCGGACGAGTGACCATCAGATTGACTTGACTCTTTCTGCTCAAAGCATCTGCCACTACGTTCGCTTTGCCTGGAAGGTAATGGATCTCCAACTCATAGTCTTTGATCAACTCTAACCATCTTCGTTGCCTCATGTTCAACTCTGACTGAGTGAATATGTACTTCAGACTCTTATGATCTGTGTAAACATCGCATCTCTGTCCATACAGGTAATGCCTCCATGTCTTCAGTGCATGAACCACTGCTGCCAACTCTAGATCATGGATTGGGTAATTCTTCTCATGAACCTTCAACTGTCGGGACGAGTAAGCCACAACTCTTCCCTCTTGCATCAATACGCATCCCAAACCTGTGTAACAAGCATCACAATACACCGAGAAGGGCTTGTGCACATCAGGCAAGACTAGGACAGGCGCTGTAGTCAACTTCTCTTTCAGCGCTTCAAAGGCCTCTTGGCATTTCTGAGTCCACTTGAACTCAACTTTGTTGCCTAGCAACGCTGTCATTGGTTTCGCAATCTTCGAAAATCCTTCAATGAATCGCCGATAATATCCGGCCATTCCAATGAAGCTCTTGATTCCTCGGGCATCTGTTGGCGCTTTCCAGTTCAGAATGTCTGCCACTTTCTTCGGATCCACAGCCAATCCTTCTTTGTTGATTATGTGACCCAAGAACAGGACTTCACTGATCCAGAACTCACACTTGCTCAACTTTGCATACAACTGGTGCTCTCGCAATCTCTGCAATACCATCCTCAAATGATCTGCGTGCTCTTCTTCGCTTTGAGAATAAACCAGAATGTCATCAATGAATACCACCACAAACTTATCAAGATAATCCATGAATACACTGTTCATCAAGTTCATGAAGAACGCCGGCGCATTG")
     }
 
     this.add_map_chromo = function(number,length){
@@ -167,7 +168,7 @@ function ReadMapper(div){
         this.cur_chunk = chunk
         this.clear()
         this.select_chromosome(chr,parseInt(this.cur_chunk/this.get_max_chunk()))
-		this.header.set_chr("Chromosome "+chr)
+		this.header.set_chr(chr)
         var caller = this
         // Grab the starting sequence from the database
         this.ajax.snd_msg(
@@ -207,11 +208,23 @@ function ReadMapper(div){
         )
     }
     
-    this.find_sequence = function(){ 
-        var query = this.searchbox.get_query()
+    this.find_sequence = function(sequence){ 
+		var query;
+		if(sequence === undefined){
+        	query = this.searchbox.get_query()
+		}
+		else{
+			query = sequence
+		}
 		if(query == ''){
 			return;
 		}
+		// Sanitize query
+		query = query.replace(/\s/g,'')
+		query = query.replace(/[^actgACTGnN]/g,'')
+	
+		this.searchbox.set_query(query)
+	
 		var chunks = this.frame.childNodes
 		for(var i = 0; i < chunks.length; i++){
 			if(chunks[i].attributes.highlighted_text == query){
@@ -315,6 +328,9 @@ function SearchBox(){
     this.get_query = function(){
         return this.querybox.value
     }
+	this.set_query = function(query){
+		this.querybox.value = query
+	}
 
 }
 	
@@ -334,11 +350,11 @@ function Header(main_banner_text){
 	this.main_banner = document.createElement("h2")
 	this.main_banner.innerHTML = main_banner_text
 
-	this.chr_banner = document.createElement("h3")
-	this.start_banner = document.createElement("h3")
-	this.end_banner = document.createElement("h3")
+	this.chr_banner = document.createElement("span")
+	this.start_banner = document.createElement("span")
+	this.end_banner = document.createElement("span")
 
-	this.percent_banner = document.createElement("h3")
+	this.percent_banner = document.createElement("span")
 
 	this.div.appendChild(this.main_banner)	
 	this.div.appendChild(this.chr_banner)	
@@ -351,16 +367,16 @@ function Header(main_banner_text){
 		this.main_banner.innerHTML = text
 	}
 	this.set_chr = function(chr){
-		this.chr_banner.innerHTML = "Chromosome: " + chr
+		this.chr_banner.innerHTML = "Chromosome: " + chr + " | "
 	}
 	this.set_start = function(start){
-		this.start_banner.innerHTML = "Start: " + start
+		this.start_banner.innerHTML = "Start: " + start + " | "
 	}
 	this.set_end = function(end){
-		this.end_banner.innerHTML = "End: " + end
+		this.end_banner.innerHTML = "End: " + end + " | "
 	}
 	this.set_percent = function(percent){
-		this.percent_banner.innerHTML = "Percent Loaded: " + (percent).toFixed(4) + "%"
+		this.percent_banner.innerHTML = "Percent Loaded: " + (percent).toFixed(4) + "%" + " | "
 	}
 
 }

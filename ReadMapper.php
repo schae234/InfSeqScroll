@@ -10,8 +10,8 @@ class ReadMapper{
     function ReadMapper($POST){
         // Set up the Database Connection
         $this->dbase = 'ReadMapper';
-        $this->host = 'localhost:9906';
-        $this->usr = 'rschae';
+        $this->host = chop(file_get_contents("ReadMapper_Host.txt"));
+        $this->usr = chop(file_get_contents("ReadMapper_User.txt"));
         $this->pwd = chop(file_get_contents("ReadMapper_Password.txt"));
         $this->con = mysql_connect($this->host,$this->usr,$this->pwd);
         if(!$this->con){
