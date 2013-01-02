@@ -10,6 +10,7 @@ function ReadMapper(div){
     // chromo details    
     this.details = new Array()
 	this.highlighted_sequence = ''
+	this.num_seq_found = 0
     // For closures
     var caller = this
 
@@ -45,7 +46,10 @@ function ReadMapper(div){
     this.searchbox = new SearchBox()
     this.searchbox.add_click_function(
         function(){
+			var start_time = new Date().getTime()
             caller.find_sequence()
+			var ellapsed = new Date().getTime() - start_time;
+			console.log(ellapsed)
         }
     )
     this.div.appendChild(this.searchbox.div)
@@ -88,7 +92,6 @@ function ReadMapper(div){
                 offsetY += originalTarget.offsetTop-originalTarget.scrollTop;
             }
             var percentage = parseInt(((e.pageY-offsetY)/caller.chromosomes[number].div.offsetHeight)*100)
-            //caller.chromosomes[number].move_pointer(percentage)
             caller.load_chromosome(number,percentage)
         }
         this.chromosomes[number]= chr
@@ -126,6 +129,7 @@ function ReadMapper(div){
 
     this.clear = function(){
         this.frame.innerHTML = ''
+		this.num_seq_found = 0
     }
 
     this.get_max_length = function(){
@@ -156,6 +160,7 @@ function ReadMapper(div){
 
 	this.load_chromosome_chunk = function(chr,chunk){
         this.chr = chr
+		this.header.set_num_found(this.num_seq_found)
 	    if(chr > (this.chromosomes.length-1) || chr < 1){
             return null;
         }
@@ -195,7 +200,8 @@ function ReadMapper(div){
         this.cur_chunk = parseInt(percent*this.get_max_chunk()/100)
         this.clear()
         this.select_chromosome(chr,percent)
-		this.header.set_chr("Chromosome "+chr)
+		this.header.set_chr(chr)
+		this.header.set_num_found(this.num_seq_found)
         var caller = this
         // Grab the starting sequence from the database
         this.ajax.snd_msg(
@@ -222,22 +228,37 @@ function ReadMapper(div){
 		// Sanitize query
 		query = query.replace(/\s/g,'')
 		query = query.replace(/[^actgACTGnN]/g,'')
+		var reg_ex = RegExp(query,'gi');
 	
 		this.searchbox.set_query(query)
+		var num_seq_found = 0
 	
 		var chunks = this.frame.childNodes
 		for(var i = 0; i < chunks.length; i++){
-			if(chunks[i].attributes.highlighted_text == query){
+			if(chunks[i].attributes.highlighted_seq.value == query){
+				num_seq_found += parseInt(chunks[i].attributes.num_seq_found.value);
 				continue;
 			}
 			else{
+				var matches;
+				if(matches = chunks[i].attributes.seq.value.match(reg_ex)){
+					num_seq_found += matches.length
+					chunks[i].setAttribute("num_seq_found",matches.length)
+				}
+				else{
+					chunks[i].setAttribute("num_seq_found",0)
+				}
 				chunks[i].innerHTML
-				= chunks[i].attributes.seq.value.replace(RegExp(query,'gi'),"<span class='highlighted'>"+query.toUpperCase()+"</span>")
+				= chunks[i].attributes.seq.value.replace(reg_ex,"<span class='highlighted'>"+query.toUpperCase()+"</span>")
+				// Store the query we searched for
 				chunks[i].setAttribute("highlighted_seq",query)
 			}
 		}
 		this.highlighted_sequence = query;
+		this.header.set_num_found(num_seq_found)
+		this.num_seq_found = num_seq_found
     }
+
     this.move_chromosome_pointer = function(){
         var percent = parseInt(this.cur_chunk/(this.get_max_chunk())*100)
         this.chromosomes[this.selected_chromosome].set_pointer(percent)
@@ -340,12 +361,14 @@ function Chunk(obj){
 	div.setAttribute('seq'  , obj.seq)
 	div.setAttribute('class','chunk')
 	div.innerHTML = obj.seq
-	div.setAttribute('highlighted_text','')
+	div.setAttribute('highlighted_seq','')
+	div.setAttribute('num_seq_found',0)
 	return div
 }
 
 function Header(main_banner_text){
 	this.div = document.createElement("div")
+	this.div.setAttribute('class', "Header")
 	
 	this.main_banner = document.createElement("h2")
 	this.main_banner.innerHTML = main_banner_text
@@ -355,28 +378,34 @@ function Header(main_banner_text){
 	this.end_banner = document.createElement("span")
 
 	this.percent_banner = document.createElement("span")
+	
+	this.num_found_banner = document.createElement("span")
 
 	this.div.appendChild(this.main_banner)	
 	this.div.appendChild(this.chr_banner)	
 	this.div.appendChild(this.start_banner)	
 	this.div.appendChild(this.end_banner)	
 	this.div.appendChild(this.percent_banner)	
-
+	this.div.appendChild(this.num_found_banner)
+	
 	
 	this.set_main = function(text){
 		this.main_banner.innerHTML = text
 	}
 	this.set_chr = function(chr){
-		this.chr_banner.innerHTML = "Chromosome: " + chr + " | "
+		this.chr_banner.innerHTML = "Chromosome: " + chr 
 	}
 	this.set_start = function(start){
-		this.start_banner.innerHTML = "Start: " + start + " | "
+		this.start_banner.innerHTML = "Start: " + start 
 	}
 	this.set_end = function(end){
-		this.end_banner.innerHTML = "End: " + end + " | "
+		this.end_banner.innerHTML = "End: " + end 
 	}
 	this.set_percent = function(percent){
-		this.percent_banner.innerHTML = "Percent Loaded: " + (percent).toFixed(4) + "%" + " | "
+		this.percent_banner.innerHTML = "Percent Loaded: " + (percent).toFixed(4) + "%"
+	}
+	this.set_num_found = function(num){
+		this.num_found_banner.innerHTML = "Sequence Found: " + num
 	}
 
 }

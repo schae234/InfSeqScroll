@@ -10,6 +10,7 @@ body {
     font-size: 15px;
     height: 100%;
     margin: 0;
+	font-family: 'Varela',arial,serif;
 }
 div.ReadMapper {
 	background-color: white;
@@ -35,18 +36,18 @@ div.ChromoMap {
     position: relative;
     display: inline;
     float: right; 
-    border: solid thin black;
+    #border: solid thin black;
     height: 500px;
     width: 35%;
     top: 0px;
 }
 span.highlighted {
-    background: yellow;
+    background: SteelBlue;
 }
 
 div.Chromosome {
     width: 20px;
-    background-color: blue;
+    background-color: MidnightBlue;
     position: relative;
     display: inline-table;
     margin-left: 5px;
@@ -57,7 +58,7 @@ div.Chromosome {
     cursor: pointer;
 }
 div.Chromosome.Selected {
-    background-color: yellow;
+    background-color: LightSteelBlue;
 }
 div.chunk {
 	display:inline;
@@ -121,4 +122,21 @@ div.ChromosomePointer.Selected{
     padding: 10px;
     position: absolute;
     width: 279px;
+}
+
+div .Header {
+	width: 100%;
+}
+div .Header span {
+	display: inline;
+	border-left: solid blue;
+	border-right: solid blue;
+	margin-left:10px;
+	margin-right:10px;
+	font-size: 16pt;
+	padding-left: 20px;
+	padding-right: 20px;
+}
+div .SearchBox {
+	margin: auto;
 }
