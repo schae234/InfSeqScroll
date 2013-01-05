@@ -5,7 +5,7 @@ Message.prototype = heir(MessageCenter.prototype);
 
 function MessageCenter(div){
     MessageCenter.panel = div;
-    MessageCenter.default_seconds = 7;
+    MessageCenter.default_seconds = 3;
     window.message_fade = new Object();
     MessageCenter.message_stack = document.createElement('ul');
     MessageCenter.panel.appendChild(MessageCenter.message_stack);
